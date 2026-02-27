@@ -9,6 +9,8 @@ const DesignerImageUploader = ({
   onImagesChange,
   designerPrices = {},
   onPricesChange,
+  designerEnabledSides = {},
+  onEnabledSidesChange,
 }) => {
   const [showUploader, setShowUploader] = useState(null);
 
@@ -27,8 +29,16 @@ const DesignerImageUploader = ({
     right: designerPrices?.right || 0,
   };
 
+  const initialEnabled = {
+    front: designerEnabledSides?.front !== false,
+    back: designerEnabledSides?.back !== false,
+    left: designerEnabledSides?.left !== false,
+    right: designerEnabledSides?.right !== false,
+  };
+
   const [imageUrls, setImageUrls] = useState(initialImages);
   const [sidePrices, setSidePrices] = useState(initialPrices);
+  const [enabledSides, setEnabledSides] = useState(initialEnabled);
 
   // keep local state in sync if parent provides new designerImages
   useEffect(() => {
@@ -56,6 +66,17 @@ const DesignerImageUploader = ({
     };
     setSidePrices(updatedPrices);
   }, [designerPrices]);
+
+  // keep enabled sides in sync if parent provides new designerEnabledSides
+  useEffect(() => {
+    const updated = {
+      front: designerEnabledSides?.front !== false,
+      back: designerEnabledSides?.back !== false,
+      left: designerEnabledSides?.left !== false,
+      right: designerEnabledSides?.right !== false,
+    };
+    setEnabledSides(updated);
+  }, [designerEnabledSides]);
 
   const views = [
     { key: "front", label: "Front View" },
@@ -89,6 +110,13 @@ const DesignerImageUploader = ({
     if (typeof onPricesChange === "function") onPricesChange(updated);
   };
 
+  const handleToggleEnabled = (view) => {
+    const updated = { ...enabledSides, [view]: !enabledSides[view] };
+    setEnabledSides(updated);
+    if (typeof onEnabledSidesChange === "function")
+      onEnabledSidesChange(updated);
+  };
+
   console.log("[DesignerImageUploader] Render - imageUrls:", imageUrls);
   console.log("[DesignerImageUploader] Render - each view check:", {
     front: !!imageUrls.front,
@@ -107,11 +135,39 @@ const DesignerImageUploader = ({
           url: imageUrls[view.key],
         });
 
+        const isEnabled = enabledSides[view.key] !== false;
         return (
-          <div key={view.key} className="relative">
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-              {view.label}
-            </label>
+          <div
+            key={view.key}
+            className={`relative transition-opacity ${isEnabled ? "" : "opacity-50"}`}
+          >
+            {/* Side header with enable/disable toggle */}
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                {view.label}
+              </label>
+              <button
+                type="button"
+                onClick={() => handleToggleEnabled(view.key)}
+                title={isEnabled ? "Exclude this side" : "Include this side"}
+                className={`relative inline-flex items-center h-5 w-9 rounded-full transition-colors focus:outline-none ${
+                  isEnabled ? "bg-green-500" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`inline-block w-3.5 h-3.5 bg-white rounded-full shadow transform transition-transform ${
+                    isEnabled ? "translate-x-4" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+            {!isEnabled && (
+              <div className="mb-1">
+                <span className="text-xs font-semibold text-red-500 bg-red-50 px-2 py-0.5 rounded border border-red-200">
+                  Excluded
+                </span>
+              </div>
+            )}
 
             {/* Extra Price Input */}
             <div className="mb-2">
@@ -124,7 +180,8 @@ const DesignerImageUploader = ({
                 step="0.01"
                 value={sidePrices[view.key] || 0}
                 onChange={(e) => handlePriceChange(view.key, e.target.value)}
-                className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:border-blue-500 dark:bg-gray-800 dark:text-gray-200"
+                disabled={!isEnabled}
+                className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:border-blue-500 dark:bg-gray-800 dark:text-gray-200 disabled:cursor-not-allowed disabled:bg-gray-100"
                 placeholder="0.00"
               />
             </div>
@@ -164,8 +221,9 @@ const DesignerImageUploader = ({
             ) : (
               <button
                 onClick={() => setShowUploader(view.key)}
-                className="w-full h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded flex flex-col items-center justify-center text-gray-400 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                className="w-full h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded flex flex-col items-center justify-center text-gray-400 hover:border-blue-500 hover:text-blue-500 transition-colors disabled:pointer-events-none disabled:opacity-50"
                 type="button"
+                disabled={!isEnabled}
               >
                 <FiUpload className="mb-1" />
                 <span className="text-xs">Upload</span>

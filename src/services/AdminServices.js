@@ -39,6 +39,14 @@ const AdminServices = {
     return requests.put(`/admin/update-status/${id}`, body);
   },
 
+  updateOnlineStatus: async (id, body) => {
+    return requests.put(`/admin/online-status/${id}`, body);
+  },
+
+  getOnlineStatus: async (id) => {
+    return requests.get(`/admin/online-status/${id}`);
+  },
+
   deleteStaff: async (id) => {
     return requests.delete(`/admin/${id}`);
   },

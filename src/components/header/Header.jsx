@@ -23,6 +23,7 @@ import useNotification from "@/hooks/useNotification";
 import useUtilsFunction from "@/hooks/useUtilsFunction";
 import NotFoundTwo from "@/components/table/NotFoundTwo";
 import NotificationServices from "@/services/NotificationServices";
+import AdminServices from "@/services/AdminServices";
 import SelectLanguage from "@/components/form/selectOption/SelectLanguage";
 
 const Header = () => {
@@ -43,6 +44,8 @@ const Header = () => {
   const [totalUnreadDoc, setTotalUnreadDoc] = useState(0);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [onlineStatus, setOnlineStatus] = useState("online");
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
 
   const handleLogOut = () => {
     dispatch({ type: "USER_LOGOUT" });
@@ -59,6 +62,28 @@ const Header = () => {
   const handleProfileOpen = () => {
     setProfileOpen(!profileOpen);
     setNotificationOpen(false);
+  };
+
+  const statusOptions = [
+    { value: "online", label: "Online", color: "bg-green-500" },
+    { value: "away", label: "Away", color: "bg-yellow-500" },
+    { value: "busy", label: "Busy", color: "bg-red-500" },
+    { value: "offline", label: "Offline", color: "bg-gray-400" },
+  ];
+
+  const currentStatusOption =
+    statusOptions.find((s) => s.value === onlineStatus) || statusOptions[0];
+
+  const handleStatusChange = async (newStatus) => {
+    try {
+      await AdminServices.updateOnlineStatus(adminInfo._id, {
+        onlineStatus: newStatus,
+      });
+      setOnlineStatus(newStatus);
+      setStatusDropdownOpen(false);
+    } catch (err) {
+      console.error("Failed to update status", err);
+    }
   };
 
   const handleNotificationStatusChange = async (id) => {
@@ -179,6 +204,7 @@ const Header = () => {
     const handleClickOutside = (e) => {
       if (!pRef?.current?.contains(e.target)) {
         setProfileOpen(false);
+        setStatusDropdownOpen(false);
       }
       if (!nRef?.current?.contains(e.target)) {
         setNotificationOpen(false);
@@ -190,6 +216,20 @@ const Header = () => {
   useEffect(() => {
     handleGetAllNotifications();
   }, [updated]);
+
+  useEffect(() => {
+    const fetchOnlineStatus = async () => {
+      try {
+        if (adminInfo?._id) {
+          const res = await AdminServices.getOnlineStatus(adminInfo._id);
+          setOnlineStatus(res?.onlineStatus || "online");
+        }
+      } catch (err) {
+        console.error("Failed to fetch online status", err);
+      }
+    };
+    fetchOnlineStatus();
+  }, [adminInfo?._id]);
 
   return (
     <header className="z-50 py-4 bg-white shadow-sm dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
@@ -307,6 +347,10 @@ const Header = () => {
               ) : (
                 <span>{adminInfo.email[0].toUpperCase()}</span>
               )}
+              {/* Status indicator dot */}
+              <span
+                className={`absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white dark:ring-slate-900 ${currentStatusOption.color}`}
+              />
             </button>
 
             {profileOpen && (
@@ -327,6 +371,76 @@ const Header = () => {
                       <span>{t("EditProfile")}</span>
                     </span>
                   </Link>
+                </li>
+
+                {/* Status Dropdown */}
+                <li className="relative font-serif font-medium py-2 pl-4 transition-colors duration-150 hover:bg-slate-50 text-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">
+                  <button
+                    className="flex items-center text-sm w-full focus:outline-none"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setStatusDropdownOpen(!statusDropdownOpen);
+                    }}
+                  >
+                    <span
+                      className={`w-4 h-4 mr-3 flex items-center justify-center`}
+                    >
+                      <span
+                        className={`block w-2.5 h-2.5 rounded-full ${currentStatusOption.color}`}
+                      />
+                    </span>
+                    <span>{currentStatusOption.label}</span>
+                    <svg
+                      className="w-3 h-3 ml-auto mr-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  {statusDropdownOpen && (
+                    <ul className="mt-1 ml-7 mb-1 rounded-md bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 overflow-hidden">
+                      {statusOptions.map((option) => (
+                        <li
+                          key={option.value}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(option.value);
+                          }}
+                          className={`flex items-center text-sm px-3 py-1.5 cursor-pointer transition-colors duration-150 hover:bg-slate-100 dark:hover:bg-slate-600 ${
+                            onlineStatus === option.value
+                              ? "text-blue-600 dark:text-blue-400 font-semibold"
+                              : "text-slate-600 dark:text-slate-300"
+                          }`}
+                        >
+                          <span
+                            className={`block w-2 h-2 rounded-full mr-2 ${option.color}`}
+                          />
+                          {option.label}
+                          {onlineStatus === option.value && (
+                            <svg
+                              className="w-3 h-3 ml-auto"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </li>
 
                 <li

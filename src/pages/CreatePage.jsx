@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { Card, CardBody, Button, Input, Label } from "@windmill/react-ui";
-import { FiSave, FiEye } from "react-icons/fi";
+import { FiSave, FiEye, FiCode } from "react-icons/fi";
 import { useHistory } from "react-router-dom";
 import { notifySuccess, notifyError } from "@/utils/toast";
 import PageTitle from "@/components/Typography/PageTitle";
@@ -15,6 +15,19 @@ const CreatePage = () => {
   const [content, setContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showHtmlSource, setShowHtmlSource] = useState(false);
+  const [htmlSourceValue, setHtmlSourceValue] = useState("");
+
+  const handleToggleHtmlSource = () => {
+    if (!showHtmlSource) {
+      // Entering HTML source mode — populate textarea with current content
+      setHtmlSourceValue(content);
+    } else {
+      // Leaving HTML source mode — sync textarea back to content
+      setContent(htmlSourceValue);
+    }
+    setShowHtmlSource((prev) => !prev);
+  };
 
   // Generate ToC whenever content changes
   const toc = useMemo(() => {
@@ -24,29 +37,46 @@ const CreatePage = () => {
   // Quill editor modules configuration
   const modules = {
     toolbar: [
-      [{ header: [1, 2, 3, 4, false] }],
       ["bold", "italic", "underline", "strike"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      [{ color: [] }, { background: [] }],
+      [{ script: "super" }, { script: "sub" }],
+      [{ list: "ordered" }, { list: "bullet" }, { list: "check" }],
+      [{ indent: "-1" }, { indent: "+1" }],
       [{ align: [] }],
-      ["link", "image"],
+      [{ color: [] }, { background: [] }],
+      [{ size: ["small", false, "large", "huge"] }],
+      [{ font: [] }],
+      [{ header: [1, 2, 3, 4, 5, 6, false] }],
+      ["blockquote"],
+      ["link", "image", "video"],
       ["clean"],
     ],
+    history: {
+      delay: 2000,
+      maxStack: 500,
+      userOnly: true,
+    },
   };
 
   const formats = [
     "header",
+    "font",
+    "size",
     "bold",
     "italic",
     "underline",
     "strike",
+    "script",
+    "blockquote",
     "list",
     "bullet",
+    "check",
+    "indent",
+    "align",
     "color",
     "background",
-    "align",
     "link",
     "image",
+    "video",
   ];
 
   const handleSave = async () => {
@@ -147,20 +177,46 @@ const CreatePage = () => {
 
               {!showPreview ? (
                 <div className="editor-wrapper">
-                  <Label>
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-400 mb-2 block">
-                      Page Content
-                    </span>
-                  </Label>
-                  <ReactQuill
-                    theme="snow"
-                    value={content}
-                    onChange={setContent}
-                    modules={modules}
-                    formats={formats}
-                    className="bg-white dark:bg-gray-900 min-h-[500px]"
-                    placeholder="Start writing your page content..."
-                  />
+                  <div className="flex items-center justify-between mb-2">
+                    <Label>
+                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-400">
+                        Page Content
+                      </span>
+                    </Label>
+                    <button
+                      type="button"
+                      onClick={handleToggleHtmlSource}
+                      title={showHtmlSource ? "Switch to Visual Editor" : "View/Edit HTML Source"}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded border transition-all ${
+                        showHtmlSource
+                          ? "bg-blue-600 text-white border-blue-600"
+                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      <FiCode className="w-3.5 h-3.5" />
+                      {showHtmlSource ? "Visual Editor" : "HTML Source"}
+                    </button>
+                  </div>
+
+                  {showHtmlSource ? (
+                    <textarea
+                      value={htmlSourceValue}
+                      onChange={(e) => setHtmlSourceValue(e.target.value)}
+                      className="w-full font-mono text-sm bg-gray-900 text-green-400 border border-gray-600 rounded p-4 min-h-[500px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      spellCheck={false}
+                      placeholder="<p>Your HTML content here...</p>"
+                    />
+                  ) : (
+                    <ReactQuill
+                      theme="snow"
+                      value={content}
+                      onChange={setContent}
+                      modules={modules}
+                      formats={formats}
+                      className="bg-white dark:bg-gray-900 min-h-[500px]"
+                      placeholder="Start writing your page content..."
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="preview-wrapper">

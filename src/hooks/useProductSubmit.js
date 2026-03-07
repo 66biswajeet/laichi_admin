@@ -56,6 +56,8 @@ const useProductSubmit = (id) => {
   const [slug, setSlug] = useState("");
   const [sizeVariants, setSizeVariants] = useState([]);
   const [useSizeVariantSystem, setUseSizeVariantSystem] = useState(false);
+  const [minPurchaseEnabled, setMinPurchaseEnabled] = useState(false);
+  const [minPurchaseQty, setMinPurchaseQty] = useState(1);
 
   const { handlerTextTranslateHandler } = useTranslationValue();
   const { showingTranslateValue, getNumber, getNumberTwo } = useUtilsFunction();
@@ -190,6 +192,8 @@ const useProductSubmit = (id) => {
         isCombination: finalVariants?.length > 0 && isCombination,
         variants:
           isCombination && finalVariants?.length > 0 ? finalVariants : [],
+        minPurchaseEnabled,
+        minPurchaseQty: minPurchaseEnabled ? Number(minPurchaseQty) : 1,
       };
 
       console.log(
@@ -309,6 +313,8 @@ const useProductSubmit = (id) => {
       setVariant([]);
       setSizeVariants([]);
       setUseSizeVariantSystem(false);
+      setMinPurchaseEnabled(false);
+      setMinPurchaseQty(1);
       setValues({});
       setTotalStock(0);
       setSelectedCategory([]);
@@ -401,6 +407,8 @@ const useProductSubmit = (id) => {
             }
 
             setIsCombination(res.isCombination);
+            setMinPurchaseEnabled(res.minPurchaseEnabled || false);
+            setMinPurchaseQty(res.minPurchaseQty || 1);
             setQuantity(res?.stock);
             setTotalStock(res.stock);
             setOriginalPrice(res?.prices?.originalPrice);
@@ -779,6 +787,10 @@ const useProductSubmit = (id) => {
     setSizeVariants,
     useSizeVariantSystem,
     setUseSizeVariantSystem,
+    minPurchaseEnabled,
+    setMinPurchaseEnabled,
+    minPurchaseQty,
+    setMinPurchaseQty,
     price,
     originalPrice,
   };

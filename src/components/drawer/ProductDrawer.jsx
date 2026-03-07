@@ -94,6 +94,10 @@ const ProductDrawer = ({ id }) => {
     setVariants,
     useSizeVariantSystem,
     setUseSizeVariantSystem,
+    minPurchaseEnabled,
+    setMinPurchaseEnabled,
+    minPurchaseQty,
+    setMinPurchaseQty,
     price,
     originalPrice,
   } = useProductSubmit(id);
@@ -373,6 +377,50 @@ const ProductDrawer = ({ id }) => {
                     tags={tag}
                     onChange={(newTags) => setTag(newTags)}
                   />
+                </div>
+              </div>
+
+              {/* Minimum Purchase */}
+              <div className="grid grid-cols-6 gap-3 md:gap-5 xl:gap-6 lg:gap-6 mb-6">
+                <LabelArea label="Min. Purchase" />
+                <div className="col-span-8 sm:col-span-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={minPurchaseEnabled}
+                        onChange={(e) =>
+                          setMinPurchaseEnabled(e.target.checked)
+                        }
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                      Enable minimum purchase quantity
+                    </span>
+                  </div>
+                  {minPurchaseEnabled && (
+                    <div className="mt-2">
+                      <Input
+                        type="number"
+                        min={1}
+                        value={minPurchaseQty}
+                        onChange={(e) =>
+                          setMinPurchaseQty(
+                            Math.max(1, parseInt(e.target.value) || 1),
+                          )
+                        }
+                        placeholder="Minimum order quantity"
+                        className="border text-sm block w-full bg-gray-100 border-gray-200"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Customers must order at least{" "}
+                        <strong>{minPurchaseQty}</strong> items (total across
+                        all sizes &amp; colours) to add to cart.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

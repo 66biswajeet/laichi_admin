@@ -183,6 +183,10 @@ const AttributeListTable = ({
         inStock: d.inStock !== false,
         stockCount: d.stockCount || 0,
         price: d.price || 0,
+        length: d.length || "",
+        width: d.width || "",
+        height: d.height || "",
+        weight: d.weight || "",
       };
     });
 
@@ -269,6 +273,14 @@ const AttributeListTable = ({
     setEditedSizeDetails((prev) => ({
       ...prev,
       [size]: { ...prev[size], price },
+    }));
+  };
+
+  // Update dimension or weight for a specific size
+  const updateSizeDimension = (size, field, value) => {
+    setEditedSizeDetails((prev) => ({
+      ...prev,
+      [size]: { ...prev[size], [field]: value },
     }));
   };
 
@@ -867,6 +879,10 @@ const AttributeListTable = ({
                               inStock: false,
                               stockCount: 0,
                               price: 0,
+                              length: "",
+                              width: "",
+                              height: "",
+                              weight: "",
                             };
                             return (
                               <div
@@ -939,6 +955,72 @@ const AttributeListTable = ({
                                     disabled={!detail.inStock}
                                     className="w-full text-xs border rounded px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:opacity-50"
                                     placeholder="0.00"
+                                  />
+                                </div>
+                                {/* Row 4: Dimensions & Weight */}
+                                <div className="flex items-center gap-1 mt-2">
+                                  <span className="text-xs text-gray-500 w-14 shrink-0">
+                                    L x W x H (in):
+                                  </span>
+                                  <input
+                                    type="number"
+                                    step="0.1"
+                                    value={detail.length}
+                                    onChange={(e) =>
+                                      updateSizeDimension(
+                                        size,
+                                        "length",
+                                        e.target.value,
+                                      )
+                                    }
+                                    disabled={!detail.inStock}
+                                    className="w-1/4 text-xs border rounded px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:opacity-50"
+                                    placeholder="L"
+                                  />
+                                  <input
+                                    type="number"
+                                    step="0.1"
+                                    value={detail.width}
+                                    onChange={(e) =>
+                                      updateSizeDimension(
+                                        size,
+                                        "width",
+                                        e.target.value,
+                                      )
+                                    }
+                                    disabled={!detail.inStock}
+                                    className="w-1/4 text-xs border rounded px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:opacity-50"
+                                    placeholder="W"
+                                  />
+                                  <input
+                                    type="number"
+                                    step="0.1"
+                                    value={detail.height}
+                                    onChange={(e) =>
+                                      updateSizeDimension(
+                                        size,
+                                        "height",
+                                        e.target.value,
+                                      )
+                                    }
+                                    disabled={!detail.inStock}
+                                    className="w-1/4 text-xs border rounded px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:opacity-50"
+                                    placeholder="H"
+                                  />
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={detail.weight}
+                                    onChange={(e) =>
+                                      updateSizeDimension(
+                                        size,
+                                        "weight",
+                                        e.target.value,
+                                      )
+                                    }
+                                    disabled={!detail.inStock}
+                                    className="w-1/4 text-xs border rounded px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 disabled:opacity-50"
+                                    placeholder="lbs"
                                   />
                                 </div>
                               </div>

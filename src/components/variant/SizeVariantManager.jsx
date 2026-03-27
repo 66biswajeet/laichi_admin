@@ -13,10 +13,12 @@ const SizeVariantManager = ({
   const [currentSize, setCurrentSize] = useState({
     width: "",
     height: "",
+    length: "",
     unit: "inch",
     image: "",
     sku: "",
     barcode: "",
+    weight: "",
     quantity: "",
     pricingTiers: [
       {
@@ -43,8 +45,8 @@ const SizeVariantManager = ({
   }, [defaultPrice, editingIndex]);
 
   const addSizeVariant = () => {
-    if (!currentSize.width || !currentSize.height) {
-      notifyError("Please enter both width and height");
+    if (!currentSize.width || !currentSize.height || !currentSize.length) {
+      notifyError("Please enter width, length and height");
       return;
     }
 
@@ -53,7 +55,7 @@ const SizeVariantManager = ({
       return;
     }
 
-    const sizeLabel = `${currentSize.width}" x ${currentSize.height}" (${currentSize.unit})`;
+    const sizeLabel = `${currentSize.width}" x ${currentSize.length}" x ${currentSize.height}" (${currentSize.unit})`;
 
     // Clean up pricing tiers - convert empty strings to numbers
     const cleanedPricingTiers = currentSize.pricingTiers.map((tier) => ({
@@ -86,10 +88,12 @@ const SizeVariantManager = ({
     setCurrentSize({
       width: "",
       height: "",
+      length: "",
       unit: "inch",
       image: "",
       sku: "",
       barcode: "",
+      weight: "",
       quantity: "",
       pricingTiers: [
         {
@@ -217,6 +221,22 @@ const SizeVariantManager = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+              Length
+            </label>
+            <Input
+              type="number"
+              step="0.1"
+              value={currentSize.length}
+              onChange={(e) =>
+                setCurrentSize({ ...currentSize, length: e.target.value })
+              }
+              placeholder="e.g., 5"
+              className="w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
               Unit
             </label>
             <select
@@ -260,6 +280,21 @@ const SizeVariantManager = ({
                 setCurrentSize({ ...currentSize, barcode: e.target.value })
               }
               placeholder="Product Barcode"
+              className="w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+              Weight (lbs)
+            </label>
+            <Input
+              type="number"
+              step="0.01"
+              value={currentSize.weight}
+              onChange={(e) =>
+                setCurrentSize({ ...currentSize, weight: e.target.value })
+              }
+              placeholder="e.g., 1"
               className="w-full"
             />
           </div>
@@ -430,6 +465,11 @@ const SizeVariantManager = ({
                     <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                       SKU: {variant.sku || "N/A"} | Barcode:{" "}
                       {variant.barcode || "N/A"}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-2">
+                      Length: {variant.length || "-"}" | Width:{" "}
+                      {variant.width || "-"}" | Height: {variant.height || "-"}"
+                      | Weight: {variant.weight || "-"} lbs
                     </div>
                   </div>
                   <div className="flex gap-2">

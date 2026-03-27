@@ -24,8 +24,8 @@ const StoreSetting = lazy(() => import("@/pages/StoreSetting"));
 const Notifications = lazy(() => import("@/pages/Notifications"));
 const CustomProducts = lazy(() => import("@/pages/CustomProducts.jsx"));
 const CookieAnalytics = lazy(() => import("@/pages/CookieAnalytics"));
-const Pages = lazy(() => import("@/pages/Pages"));
-const CreatePage = lazy(() => import("@/pages/CreatePage"));
+const PagesList = lazy(() => import("@/pages/Pages"));
+const PageEditor = lazy(() => import("@/pages/Pages/PageEditor"));
 const ProductComments = lazy(() => import("@/pages/ProductComments"));
 const ProductReviewManager = lazy(() => import("@/pages/ProductReviewManager"));
 /*
@@ -135,11 +135,16 @@ const routes = [
   },
   {
     path: "/pages",
-    component: Pages,
+    component: PagesList,
+    exact: true,
   },
   {
-    path: "/pages/create",
-    component: CreatePage,
+    path: "/pages/new",
+    component: PageEditor,
+  },
+  {
+    path: "/pages/:id/edit",
+    component: PageEditor,
   },
 ];
 

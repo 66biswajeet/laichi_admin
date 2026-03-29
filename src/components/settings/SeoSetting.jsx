@@ -2,6 +2,9 @@ import { Button } from "@windmill/react-ui";
 import { useTranslation } from "react-i18next";
 import { FiSettings, FiCopy, FiCheck } from "react-icons/fi";
 import { useState } from "react";
+import { useEffect } from "react";
+
+import SwitchToggle from "@/components/form/switch/SwitchToggle";
 
 //internal import
 import Error from "@/components/form/others/Error";
@@ -21,6 +24,7 @@ const SeoSetting = ({
   metaImg,
   setMetaImg,
   isSubmitting,
+  setValue,
 }) => {
   const { t } = useTranslation();
 
@@ -29,6 +33,15 @@ const SeoSetting = ({
   const [generatedSitemapUrl, setGeneratedSitemapUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Sitemap settings state
+  const [includeProducts, setIncludeProducts] = useState(true);
+  const [includeCategories, setIncludeCategories] = useState(true);
+  const [includePages, setIncludePages] = useState(true);
+  const [includeBlogs, setIncludeBlogs] = useState(true);
+  const [excludeList, setExcludeList] = useState("");
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [siteBaseUrl, setSiteBaseUrl] = useState("");
 
   const handleGenerateSitemap = async () => {
     if (!sitemapUrls.trim()) {
@@ -46,11 +59,20 @@ const SeoSetting = ({
         return notifyError("Please enter valid URLs");
       }
 
-      const response = await SettingServices.generateSitemap({ urls: urlList });
+      const response = await SettingServices.generateSitemap({
+        urls: urlList,
+        baseUrl:
+          siteBaseUrl ||
+          import.meta?.env?.VITE_APP_STORE_DOMAIN ||
+          (typeof window !== "undefined" ? window.location.origin : ""),
+        frontendPublicPath: "laichi_client/public",
+      });
       setGeneratedSitemapUrl(response.sitemapUrl);
       notifySuccess("Sitemap generated successfully!");
     } catch (error) {
-      notifyError(error?.response?.data?.message || "Failed to generate sitemap");
+      notifyError(
+        error?.response?.data?.message || "Failed to generate sitemap",
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -61,6 +83,167 @@ const SeoSetting = ({
     setCopied(true);
     notifySuccess("Sitemap URL copied to clipboard!");
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Load existing sitemap-related store settings (if any)
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await SettingServices.getStoreSetting();
+        if (res) {
+          // keys may or may not exist; default to true
+          setIncludeProducts(res.sitemap_include_products ?? true);
+          setIncludeCategories(res.sitemap_include_categories ?? true);
+          setIncludePages(res.sitemap_include_pages ?? true);
+          setIncludeBlogs(res.sitemap_include_blogs ?? true);
+          setExcludeList(
+            Array.isArray(res.sitemap_exclude_list)
+              ? res.sitemap_exclude_list.join("\n")
+              : res.sitemap_exclude_list || "",
+          );
+          // prefer saved sitemap_base_url, then explicit meta_url, then VITE env, then guessed origin
+          const metaSite =
+            res.sitemap_base_url ||
+            res.meta_url ||
+            res.store_url ||
+            res.storeDomain ||
+            null;
+          if (metaSite) {
+            setSiteBaseUrl(metaSite.replace(/\/+$/g, ""));
+          } else if (import.meta?.env?.VITE_APP_STORE_DOMAIN) {
+            setSiteBaseUrl(
+              String(import.meta.env.VITE_APP_STORE_DOMAIN).replace(
+                /\/+$/g,
+                "",
+              ),
+            );
+          } else if (typeof window !== "undefined") {
+            const origin = window.location.origin;
+            if (origin.includes(":4100")) {
+              setSiteBaseUrl(origin.replace(":4100", ":3000"));
+            } else {
+              setSiteBaseUrl(origin);
+            }
+          }
+          // restore previously generated sitemap URL (if persisted)
+          const genUrl =
+            res?.sitemap_generated_url ||
+            res?.setting?.sitemap_generated_url ||
+            res?.sitemapUrl ||
+            null;
+          if (genUrl) {
+            setGeneratedSitemapUrl(genUrl);
+            if (setValue) setValue("sitemap_generated_url", genUrl);
+          }
+
+          // restore previously saved page URLs
+          const urlsFromRes =
+            res?.sitemap_urls || res?.setting?.sitemap_urls || null;
+          if (urlsFromRes) {
+            const joined = Array.isArray(urlsFromRes)
+              ? urlsFromRes.join("\n")
+              : String(urlsFromRes || "");
+            setSitemapUrls(joined);
+            if (setValue)
+              setValue(
+                "sitemap_urls",
+                Array.isArray(urlsFromRes) ? urlsFromRes : String(urlsFromRes),
+              );
+          }
+          // restore saved base url
+          const savedBase =
+            res?.sitemap_base_url || res?.setting?.sitemap_base_url || null;
+          if (savedBase) {
+            setSiteBaseUrl(String(savedBase).replace(/\/+$/g, ""));
+            if (setValue)
+              setValue(
+                "sitemap_base_url",
+                String(savedBase).replace(/\/+$/g, ""),
+              );
+          }
+        }
+      } catch (err) {
+        // ignore load errors silently
+      }
+    })();
+  }, []);
+
+  // keep form values in sync so main Save persists sitemap fields
+  useEffect(() => {
+    if (setValue)
+      setValue(
+        "sitemap_urls",
+        sitemapUrls
+          .split("\n")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      );
+  }, [sitemapUrls]);
+
+  useEffect(() => {
+    if (setValue) setValue("sitemap_base_url", siteBaseUrl || null);
+  }, [siteBaseUrl]);
+
+  useEffect(() => {
+    if (setValue) setValue("sitemap_include_products", includeProducts);
+  }, [includeProducts]);
+
+  useEffect(() => {
+    if (setValue) setValue("sitemap_include_categories", includeCategories);
+  }, [includeCategories]);
+
+  useEffect(() => {
+    if (setValue) setValue("sitemap_include_pages", includePages);
+  }, [includePages]);
+
+  useEffect(() => {
+    if (setValue) setValue("sitemap_include_blogs", includeBlogs);
+  }, [includeBlogs]);
+
+  useEffect(() => {
+    if (setValue)
+      setValue(
+        "sitemap_exclude_list",
+        excludeList
+          .split("\n")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      );
+  }, [excludeList]);
+
+  const handleSaveSitemapSettings = async () => {
+    try {
+      setIsSavingSettings(true);
+      const urlsArr = sitemapUrls
+        .split("\n")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+      const payload = {
+        name: "storeSetting",
+        setting: {
+          sitemap_include_products: includeProducts,
+          sitemap_include_categories: includeCategories,
+          sitemap_include_pages: includePages,
+          sitemap_include_blogs: includeBlogs,
+          sitemap_exclude_list: excludeList
+            .split("\n")
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0),
+          // persist the explicitly set base URL so it survives refresh
+          sitemap_base_url: siteBaseUrl || null,
+          // persist the list of page URLs so they survive refresh
+          sitemap_urls: urlsArr,
+        },
+      };
+
+      const resp = await SettingServices.updateStoreSetting(payload);
+      notifySuccess(resp.message || "Sitemap settings saved");
+    } catch (err) {
+      notifyError(err?.response?.data?.message || "Failed to save settings");
+    } finally {
+      setIsSavingSettings(false);
+    }
   };
 
   return (
@@ -180,6 +363,80 @@ const SeoSetting = ({
                 XML Sitemap Generator
               </div>
 
+              {/* Sitemap Settings Toggles & Exclusion List */}
+              <div className="grid md:grid-cols-5 sm:grid-cols-12 gap-3 md:gap-5 xl:gap-6 lg:gap-6 mb-6">
+                <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1 sm:col-span-2">
+                  Sitemap Options
+                </label>
+                <div className="sm:col-span-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm">Include Products</div>
+                    <SwitchToggle
+                      id="sitemap_products"
+                      processOption={includeProducts}
+                      handleProcess={setIncludeProducts}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm">Include Categories</div>
+                    <SwitchToggle
+                      id="sitemap_categories"
+                      processOption={includeCategories}
+                      handleProcess={setIncludeCategories}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm">Include Pages</div>
+                    <SwitchToggle
+                      id="sitemap_pages"
+                      processOption={includePages}
+                      handleProcess={setIncludePages}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm">Include Blogs</div>
+                    <SwitchToggle
+                      id="sitemap_blogs"
+                      processOption={includeBlogs}
+                      handleProcess={setIncludeBlogs}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-5 sm:grid-cols-12 gap-3 md:gap-5 xl:gap-6 lg:gap-6 mb-6">
+                <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1 sm:col-span-2">
+                  Exclusion List
+                </label>
+                <div className="sm:col-span-3">
+                  <textarea
+                    value={excludeList}
+                    onChange={(e) => setExcludeList(e.target.value)}
+                    placeholder="Enter paths or full URLs to exclude (one per line)"
+                    className="w-full px-3 py-2 text-sm leading-5 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:border-blue-400 dark:focus:border-blue-500"
+                    rows="4"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    One entry per line. Example: /secret-page or
+                    https://example.com/private
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-5 sm:grid-cols-12 gap-3 md:gap-5 xl:gap-6 lg:gap-6 mb-6">
+                <div className="sm:col-span-2"></div>
+                <div className="sm:col-span-3 flex gap-3">
+                  <Button
+                    type="button"
+                    onClick={handleSaveSitemapSettings}
+                    disabled={isSavingSettings}
+                    className="w-full sm:w-auto"
+                  >
+                    {isSavingSettings ? "Saving..." : "Save Sitemap Settings"}
+                  </Button>
+                </div>
+              </div>
+
               <div className="grid md:grid-cols-5 sm:grid-cols-12 gap-3 md:gap-5 xl:gap-6 lg:gap-6 mb-6">
                 <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1 sm:col-span-2">
                   Page URLs
@@ -193,7 +450,27 @@ const SeoSetting = ({
                     rows="8"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                    Enter the complete URLs you want to include in the sitemap (one per line)
+                    Enter the complete URLs you want to include in the sitemap
+                    (one per line)
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-5 sm:grid-cols-12 gap-3 md:gap-5 xl:gap-6 lg:gap-6 mb-6">
+                <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1 sm:col-span-2">
+                  Site Base URL
+                </label>
+                <div className="sm:col-span-3">
+                  <input
+                    type="text"
+                    value={siteBaseUrl}
+                    onChange={(e) => setSiteBaseUrl(e.target.value)}
+                    placeholder="https://laichi.com or http://localhost:3000"
+                    className="w-full px-3 py-2 text-sm leading-5 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:border-blue-400 dark:focus:border-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    Base URL used to build the sitemap link (defaults to
+                    localhost:3000 when admin is running on :4100).
                   </p>
                 </div>
               </div>
@@ -258,7 +535,8 @@ const SeoSetting = ({
                       </Button>
                     </div>
                     <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-                      ✓ Sitemap generated successfully! You can now use this URL in your robots.txt or submit to search engines.
+                      ✓ Sitemap generated successfully! You can now use this URL
+                      in your robots.txt or submit to search engines.
                     </p>
                   </div>
                 </div>

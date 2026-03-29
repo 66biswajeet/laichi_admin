@@ -34,6 +34,7 @@ const StoreHome = () => {
     register,
     handleSubmit,
     onSubmit,
+    setValue,
     lang,
     errors,
     favicon,
@@ -812,6 +813,7 @@ const StoreHome = () => {
                   isSave={isSave}
                   errors={errors}
                   register={register}
+                  setValue={setValue}
                   favicon={favicon}
                   setFavicon={setFavicon}
                   metaImg={metaImg}

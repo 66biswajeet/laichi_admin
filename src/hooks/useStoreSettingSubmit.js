@@ -105,6 +105,40 @@ const useStoreSettingSubmit = (id) => {
           default_product_height: data.default_product_height || 5,
           default_weight_unit: data.default_weight_unit || "kg",
           default_dim_unit: data.default_dim_unit || "cm",
+          // sitemap fields (if present in the form data)
+          sitemap_urls: Array.isArray(data.sitemap_urls)
+            ? data.sitemap_urls
+            : typeof data.sitemap_urls === "string"
+              ? data.sitemap_urls
+                  .split("\n")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : data.sitemap_urls || [],
+          sitemap_base_url: data.sitemap_base_url || null,
+          sitemap_include_products:
+            typeof data.sitemap_include_products !== "undefined"
+              ? data.sitemap_include_products
+              : true,
+          sitemap_include_categories:
+            typeof data.sitemap_include_categories !== "undefined"
+              ? data.sitemap_include_categories
+              : true,
+          sitemap_include_pages:
+            typeof data.sitemap_include_pages !== "undefined"
+              ? data.sitemap_include_pages
+              : true,
+          sitemap_include_blogs:
+            typeof data.sitemap_include_blogs !== "undefined"
+              ? data.sitemap_include_blogs
+              : true,
+          sitemap_exclude_list: Array.isArray(data.sitemap_exclude_list)
+            ? data.sitemap_exclude_list
+            : typeof data.sitemap_exclude_list === "string"
+              ? data.sitemap_exclude_list
+                  .split("\n")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+              : data.sitemap_exclude_list || [],
         },
       };
 
@@ -244,6 +278,7 @@ const useStoreSettingSubmit = (id) => {
     setEnabledFacebookLogin,
     enabledGoogleAnalytics,
     setEnabledGoogleAnalytics,
+    setValue,
   };
 };
 

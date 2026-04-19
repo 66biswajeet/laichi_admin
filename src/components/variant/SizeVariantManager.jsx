@@ -14,7 +14,7 @@ const SizeVariantManager = ({
     width: "",
     height: "",
     length: "",
-    unit: "inch",
+    unit: "in",
     image: "",
     sku: "",
     barcode: "",
@@ -89,7 +89,7 @@ const SizeVariantManager = ({
       width: "",
       height: "",
       length: "",
-      unit: "inch",
+      unit: "in",
       image: "",
       sku: "",
       barcode: "",
@@ -246,7 +246,7 @@ const SizeVariantManager = ({
               }
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500"
             >
-              <option value="inch">Inch</option>
+              <option value="in">Inch</option>
               <option value="cm">CM</option>
             </select>
           </div>
@@ -421,7 +421,7 @@ const SizeVariantManager = ({
                 setCurrentSize({
                   width: "",
                   height: "",
-                  unit: "inch",
+                  unit: "in",
                   image: "",
                   sku: "",
                   barcode: "",

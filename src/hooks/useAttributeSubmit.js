@@ -28,7 +28,7 @@ const useAttributeSubmit = (id) => {
     for (let i = 0; i < variants.length; i++) {
       const variantsTranslates = await handlerTextTranslateHandler(
         variants[i],
-        language
+        language,
       );
 
       variantArrayOfObject = [
@@ -64,12 +64,12 @@ const useAttributeSubmit = (id) => {
       const titleTranslates = await handlerTextTranslateHandler(
         title,
         language,
-        resData?.title
+        resData?.title,
       );
       const nameTranslates = await handlerTextTranslateHandler(
         name,
         language,
-        resData?.name
+        resData?.name,
       );
 
       const attributeData = {
@@ -113,7 +113,7 @@ const useAttributeSubmit = (id) => {
   };
 
   // child attribute
-  const onSubmits = async ({ name }) => {
+  const onSubmits = async ({ name, hex }) => {
     try {
       setIsSubmitting(true);
       if (id) {
@@ -124,7 +124,8 @@ const useAttributeSubmit = (id) => {
               [language]: name,
             },
             status: published ? "show" : "hide",
-          }
+            hex: hex,
+          },
         );
         setIsUpdate(true);
         setIsSubmitting(false);
@@ -138,7 +139,8 @@ const useAttributeSubmit = (id) => {
               [language]: name,
             },
             status: published ? "show" : "hide",
-          }
+            hex: hex,
+          },
         );
         setIsUpdate(true);
         setIsSubmitting(false);
@@ -219,6 +221,10 @@ const useAttributeSubmit = (id) => {
           if (res) {
             // console.log('res child', res);
             setValue("name", res.name[language ? language : "en"]);
+            // if hex/color exists, set form value
+            if (res.hex) {
+              setValue("hex", res.hex);
+            }
             setPublished(res.status === "show" ? true : false);
           }
         } catch (err) {

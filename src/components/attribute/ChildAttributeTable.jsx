@@ -24,6 +24,11 @@ const ChildAttributeTable = ({
   const { title, serviceId, handleModalOpen, handleUpdate } = useToggleDrawer();
   const { showingTranslateValue } = useUtilsFunction();
 
+  const isColorAttribute =
+    att && showingTranslateValue(att.title)
+      ? showingTranslateValue(att.title).toLowerCase().includes("color")
+      : false;
+
   const handleClick = (e) => {
     const { id, checked } = e.target;
     setIsCheck([...isCheck, id]);
@@ -59,7 +64,16 @@ const ChildAttributeTable = ({
             </TableCell>
 
             <TableCell className="font-medium text-sm">
-              {showingTranslateValue(attribute?.name)}
+              <div className="flex items-center gap-3">
+                {isColorAttribute && attribute?.hex && (
+                  <div
+                    className="w-6 h-6 rounded-md border"
+                    style={{ backgroundColor: attribute.hex }}
+                    title={attribute.hex}
+                  />
+                )}
+                <div>{showingTranslateValue(attribute?.name)}</div>
+              </div>
             </TableCell>
 
             <TableCell className="font-medium text-sm">{att?.option}</TableCell>

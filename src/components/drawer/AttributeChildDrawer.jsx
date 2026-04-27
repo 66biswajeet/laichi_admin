@@ -61,6 +61,20 @@ const AttributeChildDrawer = ({ id }) => {
               </div>
             </div>
             <div className="grid grid-cols-6 gap-3 md:gap-5 xl:gap-6 lg:gap-6 mb-6 items-center">
+              <LabelArea label="Hex Code" />
+
+              <div className="col-span-8 sm:col-span-4">
+                <InputArea
+                  register={register}
+                  label="Hex Code"
+                  name="hex"
+                  type="text"
+                  placeholder="#FFFFFF"
+                />
+                <Error errorName={errors.hex} />
+              </div>
+            </div>
+            <div className="grid grid-cols-6 gap-3 md:gap-5 xl:gap-6 lg:gap-6 mb-6 items-center">
               <LabelArea label="Published" />
 
               <div className="col-span-8 sm:col-span-4">

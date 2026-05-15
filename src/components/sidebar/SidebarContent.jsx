@@ -8,8 +8,8 @@ import { IoLogOutOutline } from "react-icons/io5";
 //internal import
 import sidebar from "@/routes/sidebar";
 // import SidebarSubMenu from "SidebarSubMenu";
-import logoDark from "@/assets/img/logo/logo-color.jpg";
-import logoLight from "@/assets/img/logo/logo-color.jpg";
+import logoDark from "@/assets/img/logo/logo-color.svg";
+import logoLight from "@/assets/img/logo/logo-color.svg";
 import { AdminContext } from "@/context/AdminContext";
 import SidebarSubMenu from "@/components/sidebar/SidebarSubMenu";
 import useGetCData from "@/hooks/useGetCData";

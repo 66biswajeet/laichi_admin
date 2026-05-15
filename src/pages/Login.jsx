@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import Error from "@/components/form/others/Error";
 import LabelArea from "@/components/form/selectOption/LabelArea";
 import InputArea from "@/components/form/input/InputArea";
-import Logo from "@/assets/img/logo/logo-color.jpg";
+import Logo from "@/assets/img/logo/logo-color.svg";
 import useLoginSubmit from "@/hooks/useLoginSubmit";
 import CMButton from "@/components/form/button/CMButton";
 
